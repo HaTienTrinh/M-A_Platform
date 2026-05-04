@@ -57,28 +57,25 @@ export async function PUT(
       return NextResponse.json({ error: "Deal not found" }, { status: 404 });
     }
 
-      // Admin bypasses strict state transitions for ease of use
-      // Validating transitions here prevents admin from quickly approving submitted deals
-      // if they aren't perfectly following the state machine steps.
+    // Admin bypasses strict state transitions for ease of use
+    // Validating transitions here prevents admin from quickly approving submitted deals
+    // if they aren't perfectly following the state machine steps.
 
-      // Additional validation: cannot publish without seller KYC verification
-      if (status === "active") {
-        const { data: seller } = await authSupabase
-          .from("users")
-          .select("kyc_status")
-          .eq("id", currentDeal.seller_id)
-          .single();
+    // Additional validation: cannot publish without seller KYC verification
+    if (status === "active") {
+      const { data: seller } = await authSupabase
+        .from("users")
+        .select("kyc_status")
+        .eq("id", currentDeal.seller_id)
+        .single();
 
-        if (
-          seller?.kyc_status !== "verified"
-        ) {
-          return NextResponse.json(
-            {
-              error: "Seller KYC verification required before publishing deal",
-            },
-            { status: 403 },
-          );
-        }
+      if (seller?.kyc_status !== "verified") {
+        return NextResponse.json(
+          {
+            error: "Seller KYC verification required before publishing deal",
+          },
+          { status: 403 },
+        );
       }
     }
 
